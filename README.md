@@ -8,7 +8,7 @@
 
 - 运行自动解析域名脚本
     - 脚本依赖requests库获取ipv6地址，安装库`pip install requests`
-    - 执行脚本：命令`python meibu-ddns`，执行后脚本每5分钟自动刷新
+    - 执行脚本：命令`python meibu-ddns.py`，执行后脚本每5分钟自动刷新
 
 ## 其他
 - 想开机自启动后台执行脚本？自己想办法
