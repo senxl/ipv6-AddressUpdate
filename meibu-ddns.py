@@ -1,13 +1,16 @@
 import re
-import socket
 import os
 import time
 import platform
 import requests
 
 # 每步动态域名登录信息
-meibu_hostname = 'xxx.msns.cn'
-meibu_passwd = 'xxxxxx'
+meibu_hostname = 'xxxx.msns.cn'
+meibu_passwd = 'xxxxxxx'
+
+# dynv6动态域名登录信息
+dynv6_hostname = 'xxxx.dns.army'
+dynv6_passwd = 'xxxxxxx'
 
 
 # 全局变量
@@ -16,11 +19,11 @@ root = ''
 
 # 记录数据目录设定
 if platform.system() == 'Windows':
-    root = 'C:/Users/Public/msns-ddns-update/'
-    os.system('powershell mkdir ' + root)
+    root = 'C:/Users/Public/ddns-update/'
+    os.system('powershell mkdir -Force ' + root)
 elif platform.system() == 'Linux':
-    root = '/root/msns-ddns-update/'
-    os.system('mkdir ' + root)
+    root = '/root/ddns-update/'
+    os.system('mkdir -p ' + root)
 
 # 获取IPv6地址接口
 def get_ipv6_address():
@@ -34,21 +37,14 @@ def get_ipv6_address():
 
 ##每步动态域名更新
 def meibu_update():
-    # 1数据包格式
-    udpdata = ("sdsipv6" + meibu_hostname + "###" +
-               meibu_passwd + "###" + current + "end###")
+    # 数据http_get访问
+    requests.get('http://www.meibu.com/ipv6zdz.asp?ipv6=' + current + '&name=' + meibu_hostname + '&pwd=' + meibu_passwd)
 
-    # 2创建socket对象
-    # 参数一 指定用ipv4版本，参数2 指定用udp协议
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    # 3用socket对象发送
-    # 参数1是内容 参数2是地址和端口
-    udp_socket.sendto(udpdata.encode('utf-8'), ('main.sds.cn', 60001))
-
-    # 4关闭socket对象
-    udp_socket.close()
-
+##dynv6动态域名更新
+def dynv6_update():
+    # 数据http_get访问
+    requests.get('http://dynv6.com/api/update?hostname=' + dynv6_hostname + '&token=' + dynv6_passwd + '&ipv6=' + current)
+    
 def ipFileSave():
     # 写入ipv6地址
     with open(root + "addr6.history", "w") as f:
@@ -69,11 +65,12 @@ def logSave(isUpdate):
 
 def run_update():
     if (current != ''):
+        #每步更新
         meibu_update()
         time.sleep(1)
-        meibu_update()
-        time.sleep(1)
-        meibu_update()
+
+        #dynv6更新
+        dynv6_update()
 
         ipFileSave()
         logSave(True)
@@ -83,6 +80,7 @@ def startUpdate():
     # 读取ipv6地址
     current = get_ipv6_address()
     print(current)
+    # run_update()
     try:
         with open(root + "addr6.history", "r") as f:
             addr = f.readline()
@@ -99,8 +97,8 @@ def startUpdate():
         run_update()
 
 if __name__ == '__main__':
-    # startUpdate()
-    while True:
+    startUpdate()
+    while False:
         startUpdate()
         #每隔5分钟检测
         time.sleep(5*60)
